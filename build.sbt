@@ -16,7 +16,9 @@ import scala.scalanative.build._
 lazy val scala3 = "3.8.1"
 
 ThisBuild / organization := "org.akka-js"
-ThisBuild / version := "1.0.0-native-SNAPSHOT"
+// Fixed (non-SNAPSHOT) version so it resolves cleanly from a raw-git Maven repo
+// (no maven-metadata.xml timestamp resolution needed).
+ThisBuild / version := "1.0.0-native"
 ThisBuild / scalaVersion := scala3
 
 lazy val parser = (project in file("."))
@@ -39,5 +41,11 @@ lazy val parser = (project in file("."))
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.12.0",
       "com.lihaoyi" %%% "fastparse" % "3.1.1"
     ),
-    publishMavenStyle := true
+    publishMavenStyle := true,
+    // Publish into a Maven-layout folder committed to this repo's `maven` branch,
+    // served raw from GitHub. Consumers add the matching raw.githubusercontent
+    // resolver (no auth needed). See README / godot-utilities build.sbt.
+    publishTo := Some(
+      Resolver.file("github-maven", (ThisBuild / baseDirectory).value / "maven")
+    )
   )
