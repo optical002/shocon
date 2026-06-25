@@ -2,7 +2,6 @@ package org.akkajs
 
 import scala.util.Try
 
-import scala.language.experimental.macros
 import fastparse.Parsed
 import scala.collection.compat._
 
@@ -10,7 +9,7 @@ package object shocon extends Extractors {
 
   var verboseLog = false
 
-  def setVerboseLog(): Unit = macro ConfigMacroLoader.setVerboseLogImpl
+  def setVerboseLog(): Unit = { verboseLog = true }
 
   object Config {
     type Key = String
@@ -53,9 +52,10 @@ package object shocon extends Extractors {
       def unwrapped = null
     }
 
-    def gen(input: String): Config.Value = macro ConfigMacroLoader.parse
+    // Upstream `gen` was a compile-time macro that fell back to this runtime
+    // parser; on Scala 3 / Native we keep only the runtime path.
+    def gen(input: String): Config.Value = apply(input)
 
-    /* these methods are here only for retro-compatibility and fallbacks */
     def parse(input: String) = ConfigParser.parseString(input)
     def apply(input: String): Config.Value = parse(input) match{
       case Parsed.Success(v,_) => v
