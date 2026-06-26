@@ -31,8 +31,13 @@ lazy val parser = (project in file("."))
       "-deprecation",
       "-language:implicitConversions"
     ),
-    // Build only the parser sources; the macro loader and the facade are dropped.
-    Compile / unmanagedSourceDirectories := Seq(baseDirectory.value / "shared" / "src" / "main" / "scala"),
+    // Build the runtime parser sources plus the new value-tree `com.typesafe.config` shim
+    // (under typesafe/). The old path-based, macro-driven `facade/` is intentionally NOT
+    // included. Both dirs compile into the single `shocon-parser` Scala Native artifact.
+    Compile / unmanagedSourceDirectories := Seq(
+      baseDirectory.value / "shared" / "src" / "main" / "scala",
+      baseDirectory.value / "typesafe" / "src" / "main" / "scala"
+    ),
     Compile / unmanagedSources / excludeFilter :=
       (Compile / unmanagedSources / excludeFilter).value || new SimpleFileFilter(
         _.getName == "ConfigMacroLoader.scala"
