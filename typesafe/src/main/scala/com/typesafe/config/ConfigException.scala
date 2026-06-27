@@ -21,13 +21,21 @@ object ConfigException {
     def unapply(e: IO): Boolean = true
   }
 
-  final class Parse(origin: ConfigOrigin, message: String, cause: Throwable)
+  class Parse(origin: ConfigOrigin, message: String, cause: Throwable)
       extends ConfigException(origin, message, cause) {
     def this(origin: ConfigOrigin, message: String) = this(origin, message, null)
   }
   object Parse {
     def unapply(e: Parse): Boolean = true
   }
+
+  /** Thrown when a required `${path}` substitution cannot be resolved to a value. Extends [[Parse]]
+    * so pureconfig's `ErrorUtil` maps it to a `CannotParse` failure. The message is the bare
+    * Typesafe-style text (`Could not resolve substitution to a value: ${path}`) with no trailing
+    * period, since `ErrorUtil` only strips an origin prefix and a single trailing `.`.
+    */
+  final class UnresolvedSubstitution(origin: ConfigOrigin, val expression: String)
+      extends Parse(origin, s"Could not resolve substitution to a value: $${$expression}", null)
 
   final class Missing(origin: ConfigOrigin, val path: String)
       extends ConfigException(origin, s"No configuration setting found for key '$path'", null)

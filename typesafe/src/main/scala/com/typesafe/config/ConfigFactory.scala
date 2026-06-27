@@ -26,8 +26,9 @@ object ConfigFactory {
   // --- explicit parsing (fully supported on Native) ---
 
   def parseString(s: String): Config =
-    try Config(sh.Config(s), stringOrigin)
+    try Config(impl.IncludeResolver.parse(s, baseDir = None, stringOrigin), stringOrigin)
     catch {
+      case e: ConfigException => throw e
       case NonFatal(e) => throw new ConfigException.Parse(stringOrigin, e.getMessage, e)
     }
 
@@ -104,8 +105,12 @@ object ConfigFactory {
       val text =
         try new String(Files.readAllBytes(path), "UTF-8")
         catch { case NonFatal(e) => throw new ConfigException.IO(origin, e.getMessage, e) }
-      try Config(sh.Config(text), origin)
-      catch { case NonFatal(e) => throw new ConfigException.Parse(origin, e.getMessage, e) }
+      val baseDir = Option(path.toAbsolutePath.getParent)
+      try Config(impl.IncludeResolver.parse(text, baseDir, origin), origin)
+      catch {
+        case e: ConfigException => throw e
+        case NonFatal(e) => throw new ConfigException.Parse(origin, e.getMessage, e)
+      }
     }
   }
 

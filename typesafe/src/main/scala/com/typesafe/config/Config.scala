@@ -19,11 +19,14 @@ final class Config private (private val obj: sh.Config.Object, private val origi
   /** The root object of this config. */
   def root(): ConfigObject = ConfigObject(obj, origin)
 
-  /** Substitution resolution. SHocon parses `${...}` lazily; pureconfig only requires that the tree
-    * be navigable, so resolution is a structural no-op here (best-effort substitution is a known
-    * limitation — see the port plan). Returns `this`.
+  /** Substitution resolution. Walks the (already-merged) value tree resolving HOCON
+    * `${path}` / `${?path}` references — see [[impl.SubstitutionResolver]]. Runs here, after any
+    * `withFallback` merges, so a substitution may reference a value supplied by a fallback config.
+    *
+    * @throws ConfigException.UnresolvedSubstitution if a required `${path}` cannot be resolved.
     */
-  def resolve(): Config = this
+  def resolve(): Config =
+    new Config(impl.SubstitutionResolver.resolve(obj), origin)
 
   /** Merges another config under this one (this wins), mirroring `Config.withFallback`. */
   def withFallback(other: Config): Config =

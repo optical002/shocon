@@ -44,8 +44,15 @@ lazy val parser = (project in file("."))
       ),
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.12.0",
-      "com.lihaoyi" %%% "fastparse" % "3.1.1"
+      "com.lihaoyi" %%% "fastparse" % "3.1.1",
+      "org.scalameta" %%% "munit" % "1.0.0" % Test
     ),
+    // The `com.typesafe.config` shim's tests (substitution + include resolution) live alongside the
+    // shim under typesafe/src/test; wire that dir in explicitly (mirrors the main-source setup).
+    Test / unmanagedSourceDirectories := Seq(
+      baseDirectory.value / "typesafe" / "src" / "test" / "scala"
+    ),
+    testFrameworks += new TestFramework("munit.Framework"),
     publishMavenStyle := true,
     // Publish into a Maven-layout folder committed to this repo's `maven` branch,
     // served raw from GitHub. Consumers add the matching raw.githubusercontent
