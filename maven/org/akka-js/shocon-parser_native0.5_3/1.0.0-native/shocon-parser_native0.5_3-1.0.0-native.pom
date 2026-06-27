@@ -397,5 +397,41 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.scalameta</groupId>
+            <artifactId>munit_native0.5_3</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-native</groupId>
+                    <artifactId>nativelib_native0.5_2.13</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-native</groupId>
+                    <artifactId>clib_native0.5_2.13</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-native</groupId>
+                    <artifactId>posixlib_native0.5_2.13</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-native</groupId>
+                    <artifactId>windowslib_native0.5_2.13</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-native</groupId>
+                    <artifactId>javalib_native0.5_2.13</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-native</groupId>
+                    <artifactId>auxlib_native0.5_2.13</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-native</groupId>
+                    <artifactId>scalalib_native0.5_2.13</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 </project>
