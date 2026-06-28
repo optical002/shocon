@@ -44,7 +44,7 @@ object ConfigParser {
   // strings
   def strChars[$: P] = P( CharsWhile(StringChars) )
   def quotedString[$: P] = P( "\"" ~/ (strChars | escape).rep.! ~ "\"")
-  def unquotedString[$: P] = P ( ( (letter | digit | "_" | "-" | "." | "/").rep(1).! ).rep(1,CharsWhile(_.isSpaceChar)).! )
+  def unquotedString[$: P] = P ( ( (letter | digit | "_" | "-" | "." | "/" | "%").rep(1).! ).rep(1,CharsWhile(_.isSpaceChar)).! )
   def string[$: P] = P(nlspace) ~ P(quotedString|unquotedString|CharsWhile(_.isSpaceChar).!) // bit of an hack: this would parse whitespace to the end of line
                             .rep(1).map(_.mkString.trim) // so we will trim the remaining right-side
                             .map(Config.StringLiteral.apply)

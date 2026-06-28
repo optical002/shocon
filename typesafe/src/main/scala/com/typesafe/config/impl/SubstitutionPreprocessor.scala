@@ -29,16 +29,39 @@ private[config] object SubstitutionPreprocessor {
     else text.linesIterator.map(rewriteLine).mkString("\n")
 
   private def rewriteLine(line: String): String = {
-    // Find the first unquoted key/value separator.
-    val sepIdx = firstUnquotedSeparator(line)
-    if (sepIdx < 0) return line // not a `key = value` line (could be `{`, `}`, array item, etc.)
+    // Quote each unquoted `${...}` token in place, leaving all surrounding
+    // structure (keys, separators, `[`/`{`/`,`, literal text) untouched. This
+    // handles every position the substitution can appear: a bare value
+    // (`k = ${x}`), a standalone array element (`  ${x}`), and tokens nested in
+    // an inline array/object element (`{ range: "...", spawners: [ ${x} ] }`).
+    //
+    // NB: this does NOT merge the leading-string concatenation form
+    // (`k = "a."${x}` → `"a.${x}"`); the consuming config never uses it, and
+    // [[SubstitutionResolver]] re-scans each quoted literal for substitutions
+    // anyway. If concatenation is ever needed, reintroduce the collapse path.
+    if (!hasUnquotedSubst(line)) line
+    else quoteSubstTokens(line)
+  }
 
-    val key = line.substring(0, sepIdx + 1) // include the separator
-    val value = line.substring(sepIdx + 1)
-
-    // Only rewrite when the value actually contains an unquoted ${.
-    if (!hasUnquotedSubst(value)) line
-    else key + rewriteValue(value)
+  /** Wrap each unquoted `${...}` token in `s` in double quotes, in place,
+    * leaving all other characters (brackets, commas, text) untouched. */
+  private def quoteSubstTokens(s: String): String = {
+    val sb = new StringBuilder
+    var i = 0
+    var inQuote = false
+    while (i < s.length) {
+      val c = s.charAt(i)
+      if (c == '"' && !isEscaped(s, i)) { inQuote = !inQuote; sb.append(c); i += 1 }
+      else if (!inQuote && c == '$' && i + 1 < s.length && s.charAt(i + 1) == '{') {
+        val end = s.indexOf('}', i)
+        if (end < 0) { sb.append(c); i += 1 }
+        else {
+          sb.append('"').append(s.substring(i, end + 1)).append('"')
+          i = end + 1
+        }
+      } else { sb.append(c); i += 1 }
+    }
+    sb.toString
   }
 
   /** Index of the first `=` or `:` that is not inside quotes, or -1. */
@@ -102,6 +125,9 @@ private[config] object SubstitutionPreprocessor {
         if (c == '#') return (value.substring(0, i), value.substring(i))
         if (c == '/' && i + 1 < value.length && value.charAt(i + 1) == '/')
           return (value.substring(0, i), value.substring(i))
+        // A trailing comma separates array/object elements; keep it outside the
+        // wrapped quotes so the element parses as `"…", …`.
+        if (c == ',') return (value.substring(0, i), value.substring(i))
       }
       i += 1
     }
