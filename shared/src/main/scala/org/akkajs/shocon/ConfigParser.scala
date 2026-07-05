@@ -52,8 +52,9 @@ object ConfigParser {
   // *** Parsing ***
   def array[$: P]: P[Seq[Config.Value]] = P( "[" ~ nlspace ~/ jsonExpr.rep(sep=itemSeparator) ~ nlspace ~ ",".? ~ nlspace ~ "]")
 
+  // HOCON concatenation is same-line only; a newline separates array elements.
   def repeatedArray[$: P]: P[Config.Array] =
-    array.rep(min = 1, sep=nlspace).map( ( arrays: Seq[Seq[Config.Value]] ) => Config.Array ( arrays.flatten ) )
+    array.rep(min = 1, sep=space).map( ( arrays: Seq[Seq[Config.Value]] ) => Config.Array ( arrays.flatten ) )
 
   def pair[$: P]: P[(String, Config.Value)] = P( string.map(_.value) ~/ space ~
     ((keyValueSeparator   ~/ jsonExpr )
@@ -61,8 +62,9 @@ object ConfigParser {
 
   def obj[$: P]: P[Seq[(String, Config.Value)]] = P( "{" ~/ objBody ~ "}")
 
+  // HOCON concatenation is same-line only; a newline separates array elements.
   def repeatedObj[$: P]: P[Config.Object] =
-    obj.rep(min = 1, sep=nlspace).map(fields => Config.Object(Map( fields.flatten :_*) ))
+    obj.rep(min = 1, sep=space).map(fields => Config.Object(Map( fields.flatten :_*) ))
 
   def itemSeparator[$: P] = P(("\n" ~ nlspace ~ ",".?)|(("," ~ nlspace).?))
 
