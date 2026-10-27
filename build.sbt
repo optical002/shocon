@@ -18,7 +18,7 @@ lazy val scala3 = "3.8.1"
 ThisBuild / organization := "org.akka-js"
 // Fixed (non-SNAPSHOT) version so it resolves cleanly from a raw-git Maven repo
 // (no maven-metadata.xml timestamp resolution needed).
-ThisBuild / version := "1.0.0-native"
+ThisBuild / version := "1.0.1-native"
 ThisBuild / scalaVersion := scala3
 
 lazy val parser = (project in file("."))

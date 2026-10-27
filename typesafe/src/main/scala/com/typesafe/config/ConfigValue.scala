@@ -141,12 +141,29 @@ final class ConfigObject private (val shoconObject: sh.Config.Object, private va
   }
 
   override def entrySet(): ju.Set[ju.Map.Entry[String, ConfigValue]] = {
-    val s = new ju.LinkedHashSet[ju.Map.Entry[String, ConfigValue]]()
-    shoconObject.fields.foreach { case (k, v) =>
-      s.add(new ju.AbstractMap.SimpleImmutableEntry(k, ConfigValue(v, o)))
+    val fields = shoconObject.fields
+    new ju.AbstractSet[ju.Map.Entry[String, ConfigValue]] {
+      def size(): Int = fields.size
+      def iterator(): ju.Iterator[ju.Map.Entry[String, ConfigValue]] = {
+        val it = fields.iterator
+        new ju.Iterator[ju.Map.Entry[String, ConfigValue]] {
+          def hasNext(): Boolean = it.hasNext
+          def next(): ju.Map.Entry[String, ConfigValue] = {
+            val (k, v) = it.next()
+            new ju.AbstractMap.SimpleImmutableEntry(k, ConfigValue(v, o))
+          }
+        }
+      }
     }
-    s
   }
+
+  override def size(): Int = shoconObject.fields.size
+  override def isEmpty(): Boolean = shoconObject.fields.isEmpty
+  override def containsKey(key: Any): Boolean = key match {
+    case k: String => shoconObject.fields.contains(k)
+    case _ => false
+  }
+  override def keySet(): ju.Set[String] = shoconObject.fields.keySet.asJava
 
   override def get(key: Any): ConfigValue =
     shoconObject.fields.get(key.asInstanceOf[String]) match {
